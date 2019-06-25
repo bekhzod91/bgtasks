@@ -1,0 +1,11 @@
+.idea
+.venv
+venv
+env
+myenv
+*.pyc
+*.mo
+/media
+/static
+tmp
+bgtasks

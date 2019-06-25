@@ -23,19 +23,20 @@ AMQP = {
 
 ##### app1 views.py
 ```python3
+import json
 from django.http import HttpResponse
 from bgtasks import RPCClient
 
 def add_user(request):
     data = {
-        'username': 'John',
-        'password':'secret123'
+        'username': request.POST.get('username'),
+        'password': request.POST.get('password')
     }
     client = RPCClient()
     # Create user and get id
     data = client.call('user.add', data)
-    html = "<html><body>Create user id %s.</body></html>" % data
-    return HttpResponse(html)
+    content = json.dumps({"success": true, "user_id": data})
+    return HttpResponse(content)
 ```
 
 ##### app2 tasks.py
@@ -64,12 +65,12 @@ from bgtasks import JobClient
 
 def send_email(request):
     data = {
-        'email': 'user@exampe.com'
+        'email': request.POST.get('email')
     }
     client = JobClient()
     data = client.call('user.send_mail', data)
-    html = "<html><body>Email send</body></html>"
-    return HttpResponse(html)
+    content = json.dumps({"success": true})
+    return HttpResponse(content)
 ```
 
 ##### app2 tasks.py
@@ -87,4 +88,28 @@ def send_mail(data):
         [data['email']],
         fail_silently=False,
     )
+```
+
+#### Testing
+add ENVIRONMENT = 'test' on settings.py
+```python3
+import json
+from django.test import TestCase
+from django.test import Client
+from bgtasks import rpc_tasks
+
+
+@rpc_tasks('user.add')
+def add_user(data):
+    return 1
+
+class RPCTestCase(TestCase):
+    def test_add_user(self):
+        data = {'username': 'john', 'password': 'smith'}
+        c = Client()
+        response = c.post('/user/add/', data)
+        data = json.loads(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['user_id'], 1)
+
 ```

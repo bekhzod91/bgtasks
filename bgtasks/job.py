@@ -4,7 +4,7 @@ import json
 import logging
 
 from django.conf import settings
-from .config import conn_parm
+from .config import get_config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -15,7 +15,8 @@ job_methods = {}
 
 class JobClient(object):
     def __init__(self):
-        self.connection = pika.BlockingConnection(conn_parm)
+        param = get_config()
+        self.connection = pika.BlockingConnection(param)
         self.channel = self.connection.channel()
 
     def call(self, routing_key, body=None,

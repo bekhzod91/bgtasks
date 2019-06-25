@@ -6,7 +6,7 @@ import json
 import logging
 
 from django.conf import settings
-from .config import conn_parm
+from .config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,7 @@ def rpc_tasks(routing_key, exchange='', exchange_type='topic'):
 
 class RPCClient(object):
     def __init__(self):
+        conn_parm = get_config()
         self.response = None
         self.connection = pika.BlockingConnection(conn_parm)
         self.channel = self.connection.channel()
