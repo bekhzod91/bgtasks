@@ -16,6 +16,7 @@ AMQP = {
     'VHOST': '/',
     'HOST': 'localhost',
     'PORT': 5672,
+    'RPC_SLEEP_TIME': 0.005
 }
 ```
 
