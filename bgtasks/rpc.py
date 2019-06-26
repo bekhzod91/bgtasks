@@ -36,10 +36,12 @@ def rpc_tasks(routing_key, exchange='', exchange_type='topic'):
 
 class RPCClient(object):
     def __init__(self):
-        conn_parm = get_config()
         self.response = None
-        self.connection = pika.BlockingConnection(conn_parm)
-        self.channel = self.connection.channel()
+
+        if settings.ENVIRONMENT != 'test':
+            conn_parm = get_config()
+            self.connection = pika.BlockingConnection(conn_parm)
+            self.channel = self.connection.channel()
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:

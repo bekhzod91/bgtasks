@@ -3,7 +3,7 @@ import pika
 import logging
 
 from django.conf import settings
-from .config import conn_parm
+from .config import get_config
 from .rpc import RPCServer, rpc_methods
 from .job import JobServer, job_methods
 
@@ -21,7 +21,7 @@ def register_tasks():
 def start():
     register_tasks()
 
-    connection = pika.BlockingConnection(conn_parm)
+    connection = pika.BlockingConnection(get_config())
     channel = connection.channel()
 
     rpc_server = RPCServer(channel, rpc_methods)
