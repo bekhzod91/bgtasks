@@ -17,4 +17,6 @@ class Command(BaseCommand):
         if settings.DEBUG:
             logger.warning('Disable DJANGO debug mode')
 
+        logger.info('Start tasks')
         start()
+        logger.info('Finish tasks')
