@@ -8,4 +8,5 @@ myenv
 /media
 /static
 tmp
+dist
 bgtasks.egg-info/PKG-INFO
