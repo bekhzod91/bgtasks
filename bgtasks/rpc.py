@@ -104,6 +104,43 @@ class RPCServer(object):
         self.channel = channel
         self.rpc_methods = methods
 
+    def on_request(self, ch, method, props, body):
+        queue_rpc = self.rpc_methods[method.routing_key]
+
+        logger.info(
+            '[RPC_SERVER_START]: TASK ID: %s, ROUTER_KEY: %s,'
+            'CALLBACK_QUEUE: %s, CONTENT: %s' % (
+                props.correlation_id,
+                queue_rpc['routing_key'],
+                props.reply_to,
+                body
+            )
+        )
+        func = queue_rpc['func']
+        exchange = queue_rpc['exchange']
+        result = func(json.loads(body))
+        properties = pika.BasicProperties(
+            correlation_id=props.correlation_id
+        )
+        data = json.dumps(result)
+        ch.basic_publish(
+            exchange=exchange,
+            routing_key=props.reply_to,
+            properties=properties,
+            body=data
+        )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
+        logger.info(
+            '[RPC_SERVER_FINISH]: TASK ID: %s, ROUTER_KEY: %s,'
+            'CALLBACK_QUEUE: %s, CONTENT: %s' % (
+                props.correlation_id,
+                queue_rpc['routing_key'],
+                props.reply_to,
+                data
+            )
+        )
+
     def rpc_register(self):
         queue_list = set([
             self.rpc_methods[key]['routing_key']
@@ -116,43 +153,8 @@ class RPCServer(object):
         for key in self.rpc_methods.keys():
             queue_rpc = self.rpc_methods[key]
 
-            def on_request(ch, method, props, body):
-                logger.info(
-                    '[RPC_SERVER_START]: TASK ID: %s, ROUTER_KEY: %s,'
-                    'CALLBACK_QUEUE: %s, CONTENT: %s' % (
-                        props.correlation_id,
-                        queue_rpc['routing_key'],
-                        props.reply_to,
-                        body
-                    )
-                )
-                func = queue_rpc['func']
-                exchange = queue_rpc['exchange']
-                result = func(json.loads(body))
-                properties = pika.BasicProperties(
-                    correlation_id=props.correlation_id
-                )
-                data = json.dumps(result)
-                ch.basic_publish(
-                    exchange=exchange,
-                    routing_key=props.reply_to,
-                    properties=properties,
-                    body=data
-                )
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-
-                logger.info(
-                    '[RPC_SERVER_FINISH]: TASK ID: %s, ROUTER_KEY: %s,'
-                    'CALLBACK_QUEUE: %s, CONTENT: %s' % (
-                        props.correlation_id,
-                        queue_rpc['routing_key'],
-                        props.reply_to,
-                        data
-                    )
-                )
-
             self.channel.basic_qos(prefetch_count=1)
             self.channel.basic_consume(
                 queue=queue_rpc['routing_key'],
-                on_message_callback=on_request
+                on_message_callback=self.on_request
             )

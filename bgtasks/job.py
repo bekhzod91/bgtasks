@@ -43,12 +43,17 @@ class JobServer(object):
         self.channel = channel
         self.job_methods = methods
 
+    def callback(self, ch, method, properties, body):
+        queue_task = self.job_methods[method.routing_key]
+        func = queue_task['func']
+        return func(json.loads(body))
+
     def job_register(self):
         result = self.channel.queue_declare(queue='default')
 
         for key in self.job_methods.keys():
             queue_task = self.job_methods[key]
-            func = queue_task['func']
+
             self.channel.exchange_declare(
                exchange=queue_task['exchange'],
                exchange_type=queue_task['exchange_type']
@@ -61,7 +66,7 @@ class JobServer(object):
 
             self.channel.basic_consume(
                 queue=queue_name,
-                on_message_callback=lambda *args: func(json.loads(args[3])),
+                on_message_callback=self.callback,
                 auto_ack=True)
 
 
