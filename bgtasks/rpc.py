@@ -80,11 +80,16 @@ class RPCClient(object):
             ),
             body=data)
 
+        start = 0
         while self.response is None:
             sleep_time = settings.AMQP.get('RPC_SLEEP_TIME')
 
             if sleep_time:
+                start += sleep_time
                 time.sleep(sleep_time)
+
+            if start >= settings.AMQP.get('RPC_TIMEOUT', 60):
+                raise TimeoutError
 
             self.connection.process_data_events()
 
