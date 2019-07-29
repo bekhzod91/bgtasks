@@ -1,7 +1,7 @@
 from bgtasks import RPCClient
 
 try:
-    from django.core.management import execute_from_command_line
+    from django.utils.translation import ugettext_lazy as _
 except ImportError:
     raise ImportError(
         'Please install django framework to use rest part of background task'
@@ -16,6 +16,17 @@ except ImportError:
 
 
 class RemoteField(serializers.RelatedField):
+    default_error_messages = {
+        'required': _('This field is required.'),
+        'does_not_exist': _(
+            'Invalid pk "{pk_value}" - object does not exist.'),
+        'incorrect_type': _(
+            'Incorrect type. Expected pk value, received {data_type}.'),
+        'timeout': _('Timeout error({route})'),
+        'wrong_format': _('Format of response is not correct or route to '
+                          'service is incorrect({route})')
+    }
+
     def __init__(self, route, **kwargs):
         self.route = route
         self.rpc_client = RPCClient()
@@ -34,15 +45,13 @@ class RemoteField(serializers.RelatedField):
             if status == 'fail':
                 raise serializers.ValidationError(response_body)
             if len(response_body) == 0:
-                raise serializers.ValidationError('Объект не существует')
+                self.fail('does_not_exist', pk_value=data)
             self.response_data = response_body
             return data
         except TimeoutError:
-            raise serializers.ValidationError(
-                f'Сервис не отвечает({self.route})')
+            self.fail('timeout', route=self.route)
         except KeyError:
-            raise serializers.ValidationError(
-                'Ответ от сервиса не в правильной форме')
+            self.fail('wrong_format', route=self.route)
 
     def to_representation(self, value):
         if not self.response_data:

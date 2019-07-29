@@ -82,7 +82,7 @@ class RPCClient(object):
 
         start = 0
         while self.response is None:
-            sleep_time = settings.AMQP.get('RPC_SLEEP_TIME')
+            sleep_time = settings.AMQP.get('RPC_SLEEP_TIME', 0.05)
 
             if sleep_time:
                 start += sleep_time
