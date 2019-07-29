@@ -42,7 +42,7 @@ class RemoteField(serializers.RelatedField):
                 f'Сервис не отвечает({self.route})')
         except KeyError:
             raise serializers.ValidationError(
-                'Ответ от сервиса не в правильной форме')
+                'Неправильный формат ответа от сервиса или неверный маршрут')
 
     def to_representation(self, value):
         if not self.response_data:
