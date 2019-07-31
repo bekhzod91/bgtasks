@@ -54,6 +54,8 @@ class RemoteField(serializers.RelatedField):
             self.fail('wrong_format', route=self.route)
 
     def to_representation(self, value):
+        if self.context.get('view') and self.context['view'].action == 'list':
+            return value
         if not self.response_data:
             self.to_internal_value(value)
         return self.response_data[0]
