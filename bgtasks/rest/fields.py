@@ -33,6 +33,7 @@ class RemoteField(serializers.RelatedField):
         self.response_data = dict()
         if not kwargs.get('read_only', False):
             kwargs.update(queryset=[])
+        self.property_field: str = kwargs.pop('property_field', None)
         super(RemoteField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
