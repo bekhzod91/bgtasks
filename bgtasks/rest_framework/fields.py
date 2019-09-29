@@ -18,10 +18,10 @@ except ImportError:
 class RemoteField(serializers.RelatedField):
     default_error_messages = {
         'required': _('This field is required.'),
-        'does_not_exist': _(
-            'Invalid pk "{pk_value}" - object does not exist.'),
-        'incorrect_type': _(
-            'Incorrect type. Expected pk value, received {data_type}.'),
+        'does_not_exist': _('Invalid pk "{pk_value}" '
+                            '- object does not exist.'),
+        'incorrect_type': _('Incorrect type. Expected pk value,'
+                            ' received {data_type}.'),
         'timeout': _('Timeout error({route})'),
         'wrong_format': _('Format of response is not correct or route to '
                           'service is incorrect({route})')
@@ -45,9 +45,9 @@ class RemoteField(serializers.RelatedField):
 
             if status == 'fail':
                 raise serializers.ValidationError(response_body)
-            if len(response_body) == 0:
-                self.fail('does_not_exist', pk_value=data)
             self.response_data = response_body
+            if len(response_body) == 0:
+                self.response_data = [None]
             return data
         except TimeoutError:
             self.fail('timeout', route=self.route)
