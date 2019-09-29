@@ -29,7 +29,7 @@ AMQP = {
 'RPC_SLEEP_TIME': 0.05,
 ```
 
-### Usage
+## Usage
 
 ### Creating bgtask view for handle actions through `route`
 #### app1 tasks.py
@@ -58,7 +58,7 @@ To run rpc task run command below
 ```bash
 python manage.py tasks
 ```
-### RestFramework
+## RestFramework
 #### app1 models.py
 ```python
 from django.db import models
@@ -150,7 +150,7 @@ which maps to `id` field in rpc response
     },
 ]
 ``` 
-### Utils
+## Utils
 Moreover, to this library we embed several utils for working rpc request and response body. In next examples we introduce it to you.
 
 ### RPCStatus
@@ -195,7 +195,7 @@ You can import them as below, and to understand can look to function profile.
 from bgtasks.utils.merge import merge, merge_dict, merge_obj
 ```
 
-### Testing
+## Testing
 Add `ENVIRONMENT = 'test'` on settings.py in order to imitate response from 
 another service
 ```python
@@ -224,3 +224,12 @@ class RPCTestCase(TestCase):
         self.assertEqual(data['user_id'], 1)
 
 ```
+
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
