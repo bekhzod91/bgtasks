@@ -97,7 +97,7 @@ def handle(pks:list):
         return dict(status='success', data=response)
     return dict(status='fail', data=serializer.errors)
 ```
-And make sure that returned response should be formed as a list of dictionary.
+And make sure that returned response should be formed as below format.
 #### Format
 ```python
 {
