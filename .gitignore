@@ -9,4 +9,5 @@ myenv
 /static
 tmp
 dist
+build
 bgtasks.egg-info/PKG-INFO
