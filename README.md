@@ -95,7 +95,7 @@ def handle(pks:list):
         # Handle your action and response as list
         response = [dict(id=1, path='/path/to/image.jpg')]
         return response
-    return dict(errors=serializer.errors)
+    return dict(status='fail', data=serializer.errors)
 ```
 And make sure that returned response should be formed as a list of dictionary.
 #### Format
