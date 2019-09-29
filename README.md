@@ -1,6 +1,6 @@
 # bgtasks
 bgtasks is python library for dealing with data exchange between 
-micro services using rabbitmq protocol. Moreover, you can use it as trigger for events which belongs to another services 
+micro services using rabbitmq protocol. Moreover, you can use it as trigger for events which belongs to another services.
 
 ## Installation
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install bgtasks.
