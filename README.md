@@ -178,7 +178,7 @@ response_body = [{'id': 1, 'name': 'Tom'}, {'id': 2, 'name': 'Bob'}]
 response = RPCResponse(data=response_body)
 print(response)
 
-err_response_body = {'username': ['This field is required'], 'email': ['Value is not mail']}
+err_response_body = {'username': ['This field is required'], 'email': ['Value is not email']}
 response = RPCResponse(errors=err_response_body)
 print(response)
 ```
