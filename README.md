@@ -182,7 +182,7 @@ err_response_body = {'username': ['This field is required'], 'email': ['Value is
 response = RPCResponse(errors=err_response_body)
 print(response)
 ```
-####### Output
+###### Output
 ```python
 {'status': 'success', 'data': [{'id': 1, 'name': 'Tom'}, {'id': 2, 'name': 'Bob'}]}
 {'status': 'fail', 'data': {'username': ['This field is required'], 'email': ['Value is not mail']}}
