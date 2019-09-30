@@ -37,7 +37,9 @@ AMQP = {
 from bgtasks import rpc_tasks
 
 @rpc_tasks('route')
-def handle(*args):
+def handle(body):
+    param1, param2, param3 = body
+    print(param1, param2, param3)
     response = dict(username='Tom', surname='Isaak')
     return response
 ```
@@ -51,6 +53,7 @@ rpc_client = RPCClient()
 args = ('param1', 'param2', dict(param3='param3 data'))
 try:
     response = rpc_client.call('route', args)
+    print(response)
 except TimeoutError:
     print('Service is not responding')
 ```
