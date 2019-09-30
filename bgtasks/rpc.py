@@ -13,10 +13,15 @@ logger = logging.getLogger(__name__)
 rpc_methods = {}
 
 
-def rpc_without_async(routing_key, body=None):
+def pass_data(func, args, kwargs):
+    return func(*args, **kwargs)
+
+
+def rpc_without_async(routing_key, *args, **kwargs):
     func = rpc_methods[routing_key]['func']
-    data = json.dumps(body)
-    response = json.dumps(func(json.loads(data)))
+    data = json.dumps(dict(args=args, kwargs=kwargs))
+    data = json.loads(data)
+    response = json.dumps(pass_data(func, **data))
     return json.loads(response)
 
 
@@ -47,9 +52,9 @@ class RPCClient(object):
         if self.corr_id == props.correlation_id:
             self.response = body
 
-    def call(self, routing_key, body=None):
+    def call(self, routing_key, *args, **kwargs):
         if settings.ENVIRONMENT == 'test':
-            return rpc_without_async(routing_key, body)
+            return rpc_without_async(routing_key, *args, **kwargs)
 
         result = self.channel.queue_declare(queue='', exclusive=True)
         self.callback_queue = result.method.queue
@@ -62,7 +67,7 @@ class RPCClient(object):
         self.response = None
         self.corr_id = str(uuid.uuid4())
 
-        data = json.dumps(body)
+        data = json.dumps(dict(args=args, kwargs=kwargs))
 
         logger.info(
             '[RPC_TASK_START]: TASK ID: %s, ROUTER_KEY: %s '
@@ -123,7 +128,7 @@ class RPCServer(object):
         )
         func = queue_rpc['func']
         exchange = queue_rpc['exchange']
-        result = func(json.loads(body))
+        result = pass_data(func, **json.loads(body))
         properties = pika.BasicProperties(
             correlation_id=props.correlation_id
         )
