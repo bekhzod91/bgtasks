@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 rpc_methods = {}
 
 
-def pass_data(func, args, kwargs):
-    return func(*args, **kwargs)
+def pass_data(func, kwargs):
+    return func(**kwargs)
 
 
-def rpc_without_async(routing_key, *args, **kwargs):
+def rpc_without_async(routing_key, **kwargs):
     func = rpc_methods[routing_key]['func']
-    data = json.dumps(dict(args=args, kwargs=kwargs))
+    data = json.dumps(dict(kwargs=kwargs))
     data = json.loads(data)
     response = json.dumps(pass_data(func, **data))
     return json.loads(response)
@@ -52,9 +52,9 @@ class RPCClient(object):
         if self.corr_id == props.correlation_id:
             self.response = body
 
-    def call(self, routing_key, *args, **kwargs):
+    def call(self, routing_key, **kwargs):
         if settings.ENVIRONMENT == 'test':
-            return rpc_without_async(routing_key, *args, **kwargs)
+            return rpc_without_async(routing_key, **kwargs)
 
         result = self.channel.queue_declare(queue='', exclusive=True)
         self.callback_queue = result.method.queue
@@ -67,7 +67,7 @@ class RPCClient(object):
         self.response = None
         self.corr_id = str(uuid.uuid4())
 
-        data = json.dumps(dict(args=args, kwargs=kwargs))
+        data = json.dumps(dict(kwargs=kwargs))
 
         logger.info(
             '[RPC_TASK_START]: TASK ID: %s, ROUTER_KEY: %s '

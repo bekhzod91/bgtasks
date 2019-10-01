@@ -37,26 +37,25 @@ AMQP = {
 from bgtasks import rpc_tasks
 
 @rpc_tasks('route')
-def handle(body):
-    param1, param2, param3 = body
+def handle(param1, param2, param3):
     print(param1, param2, param3)
     response = dict(username='Tom', surname='Isaak')
     return response
 ```
 To get response
-
 ```python
 from bgtasks import RPCClient
 
 rpc_client = RPCClient()
 
-args = ('param1', 'param2', dict(param3='param3 data'))
 try:
-    response = rpc_client.call('route', args)
+    response = rpc_client.call('route', param1='param1_value', param2='param2_value', param3=dict(param3='param3 data'))
     print(response)
 except TimeoutError:
     print('Service is not responding')
 ```
+In order to avoid conflicts between remote procedural calls you should pass parameters **explicitly with keywords**
+ 
 To run rpc task run command below
 ```bash
 python manage.py tasks
