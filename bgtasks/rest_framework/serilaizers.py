@@ -55,7 +55,7 @@ class RPCListSerializer(serializers.ListSerializer):
             if not raw_values:
                 continue
             try:
-                rpc_response = rpc_client.call(data['route'], raw_values)
+                rpc_response = rpc_client.call(data['route'], pks=raw_values)
                 if not RPCStatus.is_success(rpc_response):
                     raise serializers.ValidationError(rpc_response['data'])
                 data['obj_values'] = rpc_response['data']
