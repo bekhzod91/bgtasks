@@ -54,7 +54,7 @@ try:
 except TimeoutError:
     print('Service is not responding')
 ```
-In order to avoid conflicts between remote procedural calls you should pass parameters **explicitly with keywords**
+In order to avoid conflicts between remote procedure calls you should pass parameters **explicitly with keywords**
  
 To run rpc task run command below
 ```bash
