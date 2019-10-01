@@ -84,7 +84,7 @@ class UserModelSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 ```
-In this case your `route` should receive arguments as list of `pks`
+In this case your `route` should receive arguments' list with explicit variable name `pks` 
 #### Example
 ```python
 from bgtasks import rpc_tasks
