@@ -64,10 +64,11 @@ python manage.py tasks
 #### app1 models.py
 ```python
 from django.db import models
+from bgtasks.models import RemoteField
 
 class User(models.Model):
     username = models.CharField(max_length=255)
-    image = models.PositiveIntegerField() # in our case, it is in another service
+    image = RemoteField() # in our case, it is in another service id
     
 ```
 #### `RemoteField`

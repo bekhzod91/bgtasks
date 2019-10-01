@@ -10,4 +10,9 @@ myenv
 tmp
 dist
 build
-bgtasks.egg-info/PKG-INFO
+settings
+manage.py
+requirements.txt
+db.sqlite3
+testapp
+bgtasks.egg-info
