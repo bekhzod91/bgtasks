@@ -39,7 +39,7 @@ class RemoteField(serializers.RelatedField):
     def to_internal_value(self, data):
         request_body = [data]
         try:
-            response: dict = self.rpc_client.call(self.route, pks=request_body)
+            response: dict = self.rpc_client.call(self.route, request_body)
             status = response['status']
             response_body = response['data']
 

@@ -92,8 +92,8 @@ from bgtasks import rpc_tasks
 from bgtasks.rest_framework.validators import IntegerListSerializer
 
 @rpc_tasks('route')
-def handle(pks:list):
-    serializer = IntegerListSerializer(data=pks)
+def handle(data: list):
+    serializer = IntegerListSerializer(data=data)
     if serializer.is_valid():
         # Handle your action and response as list
         response = [dict(id=1, path='/path/to/image.jpg')]
@@ -244,7 +244,7 @@ repository = https://upload.pypi.org/legacy/
 username = myrubapa
 ```
 After run command for build and deploy
-```
+```shell
 python3 setup.py sdist bdist_wheel
 python3 -m twine upload dist/*
 ```
