@@ -234,5 +234,21 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 Please make sure to update tests as appropriate.
 
+## How to deploy
+Create config file in home directory
+```
+[distutils] 
+index-servers=pypi
+[pypi] 
+repository = https://upload.pypi.org/legacy/ 
+username = myrubapa
+```
+After run command for build and deploy
+```
+python3 setup.py sdist bdist_wheel
+python3 -m twine upload dist/*
+```
+
+for more detail read [packaging-projects](https://packaging.python.org/tutorials/packaging-projects/)
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
