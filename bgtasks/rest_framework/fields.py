@@ -47,7 +47,7 @@ class RemoteField(serializers.RelatedField):
                 raise serializers.ValidationError(response_body)
             self.response_data = response_body
             if len(response_body) == 0:
-                self.response_data = [None]
+                raise self.fail('does_not_exist', pk_value=data)
             return data
         except TimeoutError:
             self.fail('timeout', route=self.route)
