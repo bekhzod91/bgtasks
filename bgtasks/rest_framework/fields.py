@@ -29,6 +29,7 @@ class RemoteField(serializers.RelatedField):
 
     def __init__(self, route, **kwargs):
         self.route = route
+        self.key = kwargs.get('key', 'ids')
         self.rpc_client = RPCClient()
         self.response_data = dict()
         if not kwargs.get('read_only', False):
@@ -36,21 +37,30 @@ class RemoteField(serializers.RelatedField):
         self.property_field: str = kwargs.pop('property_field', None)
         super(RemoteField, self).__init__(**kwargs)
 
-    def to_internal_value(self, data):
-        request_body = [data]
-        try:
-            response: dict = self.rpc_client.call(self.route, request_body)
-            status = response['status']
-            response_body = response['data']
+    def rpc_call(self, body):
+        response = self.rpc_client.call(self.route, body)
+        status = response['status']
+        data = response['data']
 
+        return data, status
+
+    def to_internal_value(self, value):
+        body = {self.key: [value]}
+
+        try:
+            data, status = self.rpc_call(body)
             if status == 'fail':
-                raise serializers.ValidationError(response_body)
-            self.response_data = response_body
-            if len(response_body) == 0:
-                raise self.fail('does_not_exist', pk_value=data)
+                raise serializers.ValidationError(self.response_data)
+
+            if not len(data):
+                raise self.fail('does_not_exist', pk_value=value)
+
+            self.response_data = data
+
             return data
         except TimeoutError:
             self.fail('timeout', route=self.route)
+
         except KeyError:
             self.fail('wrong_format', route=self.route)
 
