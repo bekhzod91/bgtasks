@@ -41,7 +41,7 @@ class RPCListSerializer(serializers.ListSerializer):
         rpc_fields = dict()
         for f, v in fields.items():
             if isinstance(v, RemoteField):
-                rpc_fields[f] = dict(route=v.route, source=v.source)
+                rpc_fields[f] = dict(route=v.route, source=v.source, key=v.key)
 
         for field, data in rpc_fields.items():
             raw_values = list()
@@ -55,7 +55,8 @@ class RPCListSerializer(serializers.ListSerializer):
             if not raw_values:
                 continue
             try:
-                rpc_response = rpc_client.call(data['route'], raw_values)
+                rpc_response = rpc_client.call(
+                    data['route'], {data['key']: raw_values})
                 if not RPCStatus.is_success(rpc_response):
                     raise serializers.ValidationError(rpc_response['data'])
                 data['obj_values'] = rpc_response['data']

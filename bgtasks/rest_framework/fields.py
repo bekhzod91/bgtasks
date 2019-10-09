@@ -48,16 +48,15 @@ class RemoteField(serializers.RelatedField):
         body = {self.key: [value]}
 
         try:
-            data, status = self.rpc_call(body)
+            self.response_data, status = self.rpc_call(body)
+
             if status == 'fail':
                 raise serializers.ValidationError(self.response_data)
 
-            if not len(data):
+            if not len(self.response_data):
                 raise self.fail('does_not_exist', pk_value=value)
 
-            self.response_data = data
-
-            return data
+            return value
         except TimeoutError:
             self.fail('timeout', route=self.route)
 
