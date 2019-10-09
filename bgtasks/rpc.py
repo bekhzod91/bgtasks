@@ -123,7 +123,7 @@ class RPCServer(object):
         )
         func = queue_rpc['func']
         exchange = queue_rpc['exchange']
-        result = func(body)
+        result = func(json.loads(body))
         properties = pika.BasicProperties(
             correlation_id=props.correlation_id
         )
