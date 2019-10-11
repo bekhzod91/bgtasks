@@ -1,5 +1,5 @@
 from django.test import TestCase
-from bgtasks.rest_framework.validators import validate_task
+from bgtasks.rest_framework.validators import serializer_class
 from ..rpc import rpc_tasks, RPCClient
 from ..constants import SUCCESS, FAIL
 
@@ -46,7 +46,5 @@ class RPCTasksTest(TestCase):
         self.assertEqual(message, response['data']['non_field_errors'][0])
 
     def test_validate_task_5(self):
-        message = 'No data provided'
-        response = RPCClient().call('task2', None)
-        self.assertEqual(FAIL, response['status'])
-        self.assertEqual(message, response['data']['non_field_errors'][0])
+        response = RPCClient().call('task2', {'ids': [1, 2, 3]})
+        self.assertEqual(SUCCESS, response['status'])

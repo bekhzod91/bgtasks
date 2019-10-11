@@ -1,7 +1,3 @@
-from bgtasks import RPCClient
-from bgtasks.utils.const import RPCStatus
-from bgtasks.utils.merge import merge
-
 try:
     from django.utils.translation import ugettext_lazy as _
     from django.db import models
@@ -20,7 +16,12 @@ except ImportError:
         'Install django rest framework in order to use rest part of background'
         'task'
     )
+
 from .fields import RemoteField
+from ..rpc import RPCClient
+from ..utils.const import RPCStatus
+from ..utils.merge import merge
+from ..constants import FAIL
 
 
 class RPCListSerializer(serializers.ListSerializer):
@@ -109,3 +110,17 @@ class IdsSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         raise NotImplemented
+
+
+def serializer_class(klass=IdsSerializer, **kwargs):
+    def wrapper(func):
+        def inner(data):
+            serializer = klass(data=data, **kwargs)
+
+            if serializer.is_valid():
+                return func(serializer)
+            return {'status': FAIL, 'data': serializer.errors}
+
+        return inner
+
+    return wrapper
