@@ -35,12 +35,12 @@ AMQP = {
 #### app1 tasks.py
 ```python
 from bgtasks import rpc_tasks
+from bgtasks import Response
 
-@rpc_tasks('route')
-def handle(param1, param2, param3):
-    print(param1, param2, param3)
-    response = dict(username='Tom', surname='Isaak')
-    return response
+@rpc_tasks('message')
+def handle(data):
+    print(data)
+    return Response('I get your message %s' % data)
 ```
 To get response
 ```python
@@ -49,7 +49,7 @@ from bgtasks import RPCClient
 rpc_client = RPCClient()
 
 try:
-    response = rpc_client.call('route', param1='param1_value', param2='param2_value', param3=dict(param3='param3 data'))
+    response = rpc_client.call('message', 'Hi')
     print(response)
 except TimeoutError:
     print('Service is not responding')
@@ -61,14 +61,55 @@ To run rpc task run command below
 python manage.py tasks
 ```
 ## RestFramework
+### service1
+#### Model 
+models.py
+```python
+from django.db import models
+
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+```
+In this case your `add` should receive arguments' list with explicit variable name `ids` 
+#### Tasks
+tasks.py
+```python
+from bgtasks import rpc_tasks
+from bgtasks import Response
+from bgtasks import serializer_class
+from testapp.models import Category
+from rest_framework import serializers
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'name')
+
+    
+@rpc_tasks('add')
+@serializer_class(CategorySerializer, many=True)
+def handle(serializer):
+    serializer.save()
+    return Response(serializer.data)
+    
+
+@rpc_tasks('get')
+@serializer_class()
+def handle(serializer):
+    queryset = Category.objects.filter(id__in=serializer.validated_data['ids'])
+    serializer = CategorySerializer(queryset, many=True)
+    return Response(serializer.data)
+```
+### service2
 #### app1 models.py
 ```python
 from django.db import models
 from bgtasks.models import RemoteField
 
-class User(models.Model):
-    username = models.CharField(max_length=255)
-    image = RemoteField() # in our case, it is in another service id
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    category = RemoteField() # in our case, it is in another service id
     
 ```
 #### `RemoteField`
@@ -76,39 +117,25 @@ class User(models.Model):
 ```python
 from rest_framework import serializers
 from bgtasks.rest_framework.fields import RemoteField
-from app1.models import User
+from app1.models import Product
 
-class UserModelSerializer(serializers.ModelSerializer):
-    image = RemoteField(route='route')
+
+class ProductSerializer(serializers.ModelSerializer):
+    category = RemoteField(route='get')
     
     class Meta:
-        model = User
-        fields = '__all__'
+        model = Product
+        fields = ('id', 'name', 'category', )
 ```
-In this case your `route` should receive arguments' list with explicit variable name `pks` 
-#### Example
-```python
-from bgtasks import rpc_tasks
-from bgtasks.rest_framework.validators import IntegerListSerializer
-
-@rpc_tasks('route')
-def handle(data: list):
-    serializer = IntegerListSerializer(data=data)
-    if serializer.is_valid():
-        # Handle your action and response as list
-        response = [dict(id=1, path='/path/to/image.jpg')]
-        return dict(status='success', data=response)
-    return dict(status='fail', data=serializer.errors)
-```
-And make sure that returned response should be formed as below format.
 #### Format
+And make sure that returned response should be formed as below format.
 ```python
 {
     'status': 'success/fail',
     'data': [
         {
             'id': 1,
-            # data
+            # 'data'
         },
         {
             'id': 2,
@@ -117,23 +144,24 @@ And make sure that returned response should be formed as below format.
     ]
 }
 ```
+
 #### Handling list serializer
 In order to avoid from sending many rpc requests at first level of serializer we added RPCSerializerMixin
 ```python
+from bgtasks import RemoteField
 from bgtasks.rest_framework.serilaizers import RPCSerializerMixin
-from bgtasks.rest_framework.fields import RemoteField
 from rest_framework import serializers
-from app1.models import User
+from app1.models import Product
 
-class UserModelSerializer(RPCSerializerMixin, serializers.ModelSerializer):
-    image = RemoteField(route='route')
+class ProductListSerializer(RPCSerializerMixin, serializers.ModelSerializer):
+    category = RemoteField(route='get')
     
     class Meta:
-        model = User
+        model = Product
         fields = '__all__'
 
-users = User.objects.all()
-serializer = UserModelSerializer(users, many=True)
+users = Product.objects.all()
+serializer = ProductListSerializer(users, many=True)
 print(serializer.data)
 ```
 It will send to `route` **one** request with gathered pks in body as `[1,2,3,4,5]`, after which will be iterated to merge current serializer data
@@ -143,53 +171,22 @@ which maps to `id` field in rpc response
 [
     {
         'id': 1,
-        'username': 'Tom',
-        'image': {'id': 1, 'path': '/path/to/image.jpg'}
+        'name': 'IPhone',
+        'category': {
+            'id': 5,
+            'name': 'Phone',
+        }
     },
     {
         'id': 2,
-        'username': 'Bob',
-        'image': {'id': 2, 'path': '/path/to/image.jpg'}
+        'name': 'LG Smart Tv',
+        'category': {
+            'id': 3,
+            'name': 'TV',
+        }
     },
 ]
 ``` 
-## Utils
-Moreover, to this library we embed several utils for working rpc request and response body. In next examples we introduce it to you.
-
-### RPCStatus
-```python
-from bgtasks.utils.const import RPCStatus
-
-success_response = {'status': 'success'}
-print(RPCStatus.is_success(success_response))
-
-fail_response = {'status': 'fail'}
-print(RPCStatus.is_success(success_response))
-```
-###### Output
-```bash
-True
-False
-```
-
-### RPCResponse
-
-```python
-from bgtasks.utils.rpc_response import RPCResponse
-
-response_body = [{'id': 1, 'name': 'Tom'}, {'id': 2, 'name': 'Bob'}]
-response = RPCResponse(data=response_body)
-print(response)
-
-err_response_body = {'username': ['This field is required'], 'email': ['Value is not email']}
-response = RPCResponse(errors=err_response_body)
-print(response)
-```
-###### Output
-```python
-{'status': 'success', 'data': [{'id': 1, 'name': 'Tom'}, {'id': 2, 'name': 'Bob'}]}
-{'status': 'fail', 'data': {'username': ['This field is required'], 'email': ['Value is not mail']}}
-```
 
 ### Merge methods
 To handle `many=True` in serializer we introduce `RPCSerializerMixin` which uses merge functions.
@@ -206,8 +203,9 @@ import json
 from django.test import TestCase
 from django.test import Client
 from bgtasks import rpc_tasks
+from bgtasks import RPCClient
+from bgtasks import SUCCESS
 from bgtasks.amqp import register_tasks
-
 
 
 @rpc_tasks('user.add')
@@ -217,7 +215,7 @@ def add_user(data):
 class RPCTestCase(TestCase):
     def setUp(self):
         register_tasks() # If you want to run your tasks to test them out, not only rpc tasks which are registered inside of your test file
-
+    
     def test_add_user(self):
         data = {'username': 'john', 'password': 'smith'}
         c = Client()
@@ -225,6 +223,11 @@ class RPCTestCase(TestCase):
         data = json.loads(response.content)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(data['user_id'], 1)
+        
+        
+    def test_your_tasks(self):
+        data = RPCClient().call('mytasks', {})
+        self.assertEqual(data['status'], SUCCESS)
 
 ```
 

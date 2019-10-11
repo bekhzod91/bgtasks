@@ -2,17 +2,18 @@ from django.test import TestCase
 from bgtasks import serializer_class
 from ..rpc import rpc_tasks, RPCClient
 from ..constants import SUCCESS, FAIL
+from ..rest_framework.response import Response
 
 
 @rpc_tasks('task1')
 def task1(_):
-    return {'status': SUCCESS, 'data': 'Hi 1'}
+    return Response('Hi 1')
 
 
 @rpc_tasks('task2')
 @serializer_class()
 def task2(_):
-    return {'status': SUCCESS, 'data': 'Hi 2'}
+    return Response('Hi 2')
 
 
 class RPCTasksTest(TestCase):

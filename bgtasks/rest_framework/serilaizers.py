@@ -18,6 +18,7 @@ except ImportError:
     )
 
 from .fields import RemoteField
+from .response import Response
 from ..rpc import RPCClient
 from ..utils.const import RPCStatus
 from ..utils.merge import merge
@@ -119,8 +120,7 @@ def serializer_class(klass=IdsSerializer, **kwargs):
 
             if serializer.is_valid():
                 return func(serializer)
-            return {'status': FAIL, 'data': serializer.errors}
-
+            return Response(serializer.errors, FAIL)
         return inner
 
     return wrapper
