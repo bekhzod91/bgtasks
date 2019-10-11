@@ -11,6 +11,9 @@ except ImportError:
     )
 try:
     from rest_framework import serializers
+    from rest_framework.serializers import ListField
+    from rest_framework.serializers import Serializer
+    from rest_framework.serializers import IntegerField
     from rest_framework.serializers import LIST_SERIALIZER_KWARGS
 except ImportError:
     raise ImportError(
@@ -96,3 +99,13 @@ class RPCSerializerMixin(object):
         list_serializer_class = getattr(
             meta, 'list_serializer_class', RPCListSerializer)
         return list_serializer_class(*args, **list_kwargs)
+
+
+class IdsSerializer(serializers.Serializer):
+    ids = ListField(child=IntegerField(), required=False, allow_empty=False)
+
+    def update(self, instance, validated_data):
+        raise NotImplemented
+
+    def create(self, validated_data):
+        raise NotImplemented

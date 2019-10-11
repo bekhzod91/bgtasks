@@ -1,6 +1,9 @@
+from ..constants import SUCCESS, FAIL
+
+
 class RPCStatus:
-    FAIL = 'fail'
-    SUCCESS = 'success'
+    FAIL = FAIL
+    SUCCESS = SUCCESS
 
     @classmethod
     def is_success(cls, data):
