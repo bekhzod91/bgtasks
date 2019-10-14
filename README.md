@@ -40,7 +40,7 @@ from bgtasks import Response
 @rpc_tasks('message')
 def handle(data):
     print(data)
-    return Response('I get your message %s' % data)
+    return Response('I received your message %s' % data)
 ```
 To get response
 ```python
