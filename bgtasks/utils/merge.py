@@ -1,13 +1,18 @@
 def merge(obj, field, merge_dicts: list, merge_field, raise_exception=False):
     for m in merge_dicts:
+        if type(m) in [list, tuple]:
+            merge_value = [i[merge_field] for i in m]
+        else:
+            merge_value = m.get(merge_field)
+
         if isinstance(obj, dict):
             value = obj.get(field)
-            if value == m.get(merge_field):
+            if value == merge_value:
                 obj[field] = m
                 return obj
         if isinstance(obj, object):
             value = getattr(obj, field, None)
-            if value == m.get(merge_field):
+            if value == merge_value:
                 setattr(obj, field, m[merge_field])
                 return obj
     if raise_exception:

@@ -47,10 +47,14 @@ class RPCListSerializer(serializers.ListSerializer):
         for f, v in fields.items():
             if isinstance(v, RemoteField):
                 rpc_fields[f] = dict(route=v.route, source=v.source, key=v.key)
-
         for field, data in rpc_fields.items():
             raw_values = list()
             for item in iterable:
+                internal_type = item._meta.get_field(
+                    data['source']
+                ).get_internal_type()
+                is_array = internal_type == 'ArrayField'
+
                 if isinstance(item, dict):
                     raw_values.append(item.get(data['source']))
                 else:
@@ -60,11 +64,23 @@ class RPCListSerializer(serializers.ListSerializer):
             if not raw_values:
                 continue
             try:
+                if is_array:
+                    array_values = raw_values
+                    raw_values = reduce(iconcat, raw_values, [])
                 rpc_response = rpc_client.call(
                     data['route'], {data['key']: raw_values})
                 if not RPCStatus.is_success(rpc_response):
                     raise serializers.ValidationError(rpc_response['data'])
-                data['obj_values'] = rpc_response['data']
+                if is_array:
+                    rpc_response_data = rpc_response['data']
+                    data['obj_values'] = []
+                    for value in array_values:
+                        data['obj_values'].append(
+                            rpc_response_data[:len(value)]
+                        )
+                        del rpc_response_data[:len(value)]
+                else:
+                    data['obj_values'] = rpc_response['data']
             except TimeoutError:
                 self.fail('timeout', route=data['route'])
             except KeyError:
