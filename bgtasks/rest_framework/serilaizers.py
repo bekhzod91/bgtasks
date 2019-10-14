@@ -1,3 +1,6 @@
+from operator import iconcat
+from functools import reduce
+
 try:
     from django.utils.translation import ugettext_lazy as _
     from django.db import models
