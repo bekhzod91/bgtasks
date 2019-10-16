@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bgtasks",
-    version="0.0.32",
+    version="0.0.33",
     author="Bekhzod Tillakhanov",
     author_email="bekhzod.tillakhanov@gmail.com",
     description="Microservice with django",
