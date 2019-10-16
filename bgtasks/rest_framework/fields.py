@@ -27,9 +27,10 @@ class RemoteField(serializers.RelatedField):
                           'service is incorrect({route})')
     }
 
-    def __init__(self, route, key='ids', **kwargs):
+    def __init__(self, route, key='ids', merge_key='id', **kwargs):
         self.route = route
         self.key = key
+        self.merge_key = merge_key
         self.rpc_client = RPCClient()
         self.response_data = dict()
         if not kwargs.get('read_only', False):
