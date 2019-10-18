@@ -15,9 +15,10 @@ job_methods = {}
 
 class JobClient(object):
     def __init__(self):
-        param = get_config()
-        self.connection = pika.BlockingConnection(param)
-        self.channel = self.connection.channel()
+        if settings.ENVIRONMENT != 'test':
+            param = get_config()
+            self.connection = pika.BlockingConnection(param)
+            self.channel = self.connection.channel()
 
     def call(self, routing_key, body=None,
              exchange='default', exchange_type='topic'):
