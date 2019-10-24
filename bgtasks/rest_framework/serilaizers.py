@@ -80,13 +80,13 @@ class RPCListSerializer(serializers.ListSerializer):
                 if not RPCStatus.is_success(rpc_response):
                     raise serializers.ValidationError(rpc_response['data'])
                 if is_array:
-                    rpc_response_data = rpc_response['data']
                     data['obj_values'] = []
                     for value in array_values:
-                        data['obj_values'].append(
-                            rpc_response_data[:len(value)]
-                        )
-                        del rpc_response_data[:len(value)]
+                        array_data = [
+                            i for i in rpc_response['data'] if
+                            i[data['merge_key']] in value
+                        ]
+                        data['obj_values'].append(array_data)
                 else:
                     data['obj_values'] = rpc_response['data']
             except TimeoutError:
