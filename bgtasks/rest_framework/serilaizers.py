@@ -49,7 +49,12 @@ class RPCListSerializer(serializers.ListSerializer):
         rpc_fields = dict()
         for f, v in fields.items():
             if isinstance(v, RemoteField):
-                rpc_fields[f] = dict(route=v.route, source=v.source, key=v.key)
+                rpc_fields[f] = dict(
+                    route=v.route,
+                    source=v.source,
+                    key=v.key,
+                    merge_key=v.merge_key
+                )
         for field, data in rpc_fields.items():
             raw_values = list()
             for item in iterable:
@@ -98,7 +103,7 @@ class RPCListSerializer(serializers.ListSerializer):
             if not data.get('obj_values'):
                 continue
             for r in response_data:
-                merge(r, field, data['obj_values'], 'id')
+                merge(r, field, data['obj_values'], data['merge_key'])
         return response_data
 
 
