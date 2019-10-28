@@ -46,7 +46,10 @@ class RemoteField(serializers.RelatedField):
         return data, status
 
     def to_internal_value(self, value):
-        body = {self.key: [value]}
+        if type(value) in [list, tuple]:
+            body = {self.key: value}
+        else:
+            body = {self.key: [value]}
 
         try:
             self.response_data, status = self.rpc_call(body)
@@ -69,4 +72,6 @@ class RemoteField(serializers.RelatedField):
             return value
         if not self.response_data:
             self.to_internal_value(value)
+        if type(value) in [list, tuple]:
+            return self.response_data
         return self.response_data[0]
