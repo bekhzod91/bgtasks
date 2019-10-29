@@ -10,9 +10,6 @@ myenv
 tmp
 dist
 build
-settings
-manage.py
 requirements.txt
 db.sqlite3
-testapp
 bgtasks.egg-info
