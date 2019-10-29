@@ -2,6 +2,7 @@ from operator import iconcat
 from functools import reduce
 
 from bgtasks import RPCClient
+from bgtasks.constants import ITERABLE_FIELDS, RELATION_FIELDS
 
 try:
     from django.utils.translation import ugettext_lazy as _
@@ -16,9 +17,6 @@ except ImportError:
         'Install django rest framework in order to use rest part of background'
         'task'
     )
-
-RELATION_FIELDS = ['ForeignKey', 'ManyToManyField']
-ITERABLE_FIELDS = RELATION_FIELDS + ['ArrayField']
 
 
 class RemoteField(serializers.RelatedField):
