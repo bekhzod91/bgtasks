@@ -1,4 +1,8 @@
+from operator import iconcat
+from functools import reduce
+
 from bgtasks import RPCClient
+from bgtasks.constants import ITERABLE_FIELDS, RELATION_FIELDS
 
 try:
     from django.utils.translation import ugettext_lazy as _
@@ -27,10 +31,12 @@ class RemoteField(serializers.RelatedField):
                           'service is incorrect({route})')
     }
 
-    def __init__(self, route, key='ids', merge_key='id', **kwargs):
+    def __init__(self, route, key='ids', merge_key='id', remote_field='',
+                 **kwargs):
         self.route = route
         self.key = key
         self.merge_key = merge_key
+        self.remote_field = remote_field
         self.rpc_client = RPCClient()
         self.response_data = dict()
         if not kwargs.get('read_only', False):
@@ -42,10 +48,15 @@ class RemoteField(serializers.RelatedField):
         response = self.rpc_client.call(self.route, body)
         status = response['status']
         data = response['data']
-
         return data, status
 
     def to_internal_value(self, value):
+        model = self.parent.Meta.model
+        model_type = model._meta.get_field(self.field_name).get_internal_type()
+        is_array = model_type in ITERABLE_FIELDS
+        if is_array and type(value) not in [list, tuple]:
+            raise serializers.ValidationError(_('Must be array.'))
+
         if type(value) in [list, tuple]:
             body = {self.key: value}
         else:
@@ -68,6 +79,11 @@ class RemoteField(serializers.RelatedField):
             self.fail('wrong_format', route=self.route)
 
     def to_representation(self, value):
+        model = self.parent.Meta.model
+        model_type = model._meta.get_field(self.field_name).get_internal_type()
+
+        if model_type in RELATION_FIELDS:
+            value = list(value.values_list(self.remote_field, flat=True))
         if self.context.get('many', False):
             return value
         if not self.response_data:

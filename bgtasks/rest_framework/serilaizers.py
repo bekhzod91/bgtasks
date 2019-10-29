@@ -25,7 +25,7 @@ from .response import Response
 from ..rpc import RPCClient
 from ..utils.const import RPCStatus
 from ..utils.merge import merge
-from ..constants import FAIL
+from ..constants import FAIL, ITERABLE_FIELDS, RELATION_FIELDS
 
 
 class RPCListSerializer(serializers.ListSerializer):
@@ -53,7 +53,8 @@ class RPCListSerializer(serializers.ListSerializer):
                     route=v.route,
                     source=v.source,
                     key=v.key,
-                    merge_key=v.merge_key
+                    merge_key=v.merge_key,
+                    remote_field=v.remote_field
                 )
         for field, data in rpc_fields.items():
             raw_values = list()
@@ -61,13 +62,20 @@ class RPCListSerializer(serializers.ListSerializer):
                 internal_type = item._meta.get_field(
                     data['source']
                 ).get_internal_type()
-                is_array = internal_type == 'ArrayField'
+                is_array = internal_type in ITERABLE_FIELDS
 
-                if isinstance(item, dict):
+                if internal_type in RELATION_FIELDS:
+                    query = getattr(item, field).values_list(
+                        data['remote_field'], flat=True
+                    )
+                    raw_values.append(list(query))
+
+                elif isinstance(item, dict):
                     raw_values.append(item.get(data['source']))
                 else:
                     raw_values.append(getattr(item, data['source'], None))
             raw_values = list(filter(None, raw_values))
+
             data['raw_values'] = raw_values
             if not raw_values:
                 continue
@@ -84,7 +92,7 @@ class RPCListSerializer(serializers.ListSerializer):
                     for value in array_values:
                         array_data = [
                             i for i in rpc_response['data'] if
-                            i[data['merge_key']] in value
+                            str(i[data['merge_key']]) in list(map(str, value))
                         ]
                         data['obj_values'].append(array_data)
                 else:

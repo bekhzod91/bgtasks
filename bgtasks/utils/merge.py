@@ -7,7 +7,9 @@ def merge(obj, field, merge_dicts: list, merge_field, raise_exception=False):
 
         if isinstance(obj, dict):
             value = obj.get(field)
-            if type(merge_value) == list:
+            if type(merge_value) in [list, tuple]:
+                value = list(map(str, value))
+                merge_value = list(map(str, merge_value))
                 if set(value) == set(merge_value):
                     obj[field] = m
                     return obj
