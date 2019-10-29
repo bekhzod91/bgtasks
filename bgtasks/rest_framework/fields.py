@@ -1,3 +1,6 @@
+from operator import iconcat
+from functools import reduce
+
 from bgtasks import RPCClient
 
 try:
@@ -13,6 +16,9 @@ except ImportError:
         'Install django rest framework in order to use rest part of background'
         'task'
     )
+
+RELATION_FIELDS = ['ForeignKey', 'ManyToManyField']
+ITERABLE_FIELDS = RELATION_FIELDS + ['ArrayField']
 
 
 class RemoteField(serializers.RelatedField):
@@ -49,7 +55,7 @@ class RemoteField(serializers.RelatedField):
     def to_internal_value(self, value):
         model = self.parent.Meta.model
         model_type = model._meta.get_field(self.field_name).get_internal_type()
-        is_array = model_type in ['ArrayField', 'ForeignKey']
+        is_array = model_type in ITERABLE_FIELDS
         if is_array and type(value) not in [list, tuple]:
             raise serializers.ValidationError(_('Must be array.'))
 
@@ -78,7 +84,7 @@ class RemoteField(serializers.RelatedField):
         model = self.parent.Meta.model
         model_type = model._meta.get_field(self.field_name).get_internal_type()
 
-        if model_type == 'ForeignKey':
+        if model_type in RELATION_FIELDS:
             value = list(value.values_list(self.remote_field, flat=True))
         if self.context.get('many', False):
             return value
