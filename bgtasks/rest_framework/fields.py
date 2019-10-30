@@ -87,6 +87,8 @@ class RemoteField(serializers.RelatedField):
 
         if model_type in RELATION_FIELDS:
             value = list(value.values_list(self.remote_field, flat=True))
+            if not value:
+                return value
         if self.context.get('many', False):
             return value
         if not self.response_data:
