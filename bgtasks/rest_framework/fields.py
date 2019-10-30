@@ -1,6 +1,3 @@
-from operator import iconcat
-from functools import reduce
-
 from bgtasks import RPCClient
 from bgtasks.constants import ITERABLE_FIELDS, RELATION_FIELDS
 
