@@ -51,6 +51,9 @@ class RemoteField(serializers.RelatedField):
         return data, status
 
     def to_internal_value(self, value):
+        if not value:
+            return value
+
         model = self.parent.Meta.model
         model_type = model._meta.get_field(self.field_name).get_internal_type()
         is_array = model_type in ITERABLE_FIELDS
