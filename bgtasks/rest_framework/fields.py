@@ -51,11 +51,19 @@ class RemoteField(serializers.RelatedField):
         return data, status
 
     def to_internal_value(self, value):
-        model = self.parent.Meta.model
-        model_type = model._meta.get_field(self.field_name).get_internal_type()
-        is_array = model_type in ITERABLE_FIELDS
-        if is_array and type(value) not in [list, tuple]:
-            raise serializers.ValidationError(_('Must be array.'))
+        if not value:
+            return value
+
+        try:
+            model = self.parent.Meta.model
+            model_type = model._meta.get_field(
+                self.field_name
+            ).get_internal_type()
+            is_array = model_type in ITERABLE_FIELDS
+            if is_array and type(value) not in [list, tuple]:
+                raise serializers.ValidationError(_('Must be array.'))
+        except AttributeError:
+            pass
 
         if type(value) in [list, tuple]:
             body = {self.key: value}
@@ -79,11 +87,17 @@ class RemoteField(serializers.RelatedField):
             self.fail('wrong_format', route=self.route)
 
     def to_representation(self, value):
-        model = self.parent.Meta.model
-        model_type = model._meta.get_field(self.field_name).get_internal_type()
+        try:
+            model = self.parent.Meta.model
+            model_type = model._meta.get_field(
+                self.field_name).get_internal_type()
 
-        if model_type in RELATION_FIELDS:
-            value = list(value.values_list(self.remote_field, flat=True))
+            if model_type in RELATION_FIELDS:
+                value = list(value.values_list(self.remote_field, flat=True))
+                if not value:
+                    return value
+        except Exception as e:
+            pass
         if self.context.get('many', False):
             return value
         if not self.response_data:
