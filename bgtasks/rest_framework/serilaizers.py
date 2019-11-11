@@ -1,4 +1,4 @@
-from operator import iconcat
+from operator import iconcat, attrgetter
 from functools import reduce
 
 try:
@@ -59,10 +59,15 @@ class RPCListSerializer(serializers.ListSerializer):
         for field, data in rpc_fields.items():
             raw_values = list()
             for item in iterable:
-                internal_type = item._meta.get_field(
-                    data['source']
-                ).get_internal_type()
-                is_array = internal_type in ITERABLE_FIELDS
+                internal_type = type(attrgetter(data['source'])(item))
+                is_array = internal_type in [list, tuple]
+
+                try:
+                    internal_type = item._meta.get_field(
+                        data['source']
+                    ).get_internal_type()
+                except Exception as e:
+                    pass
 
                 if internal_type in RELATION_FIELDS:
                     query = getattr(item, field).values_list(
@@ -153,6 +158,7 @@ def serializer_class(klass=IdsSerializer, **kwargs):
             if serializer.is_valid():
                 return func(serializer)
             return Response(serializer.errors, FAIL)
+
         return inner
 
     return wrapper
