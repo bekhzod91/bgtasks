@@ -3,6 +3,7 @@ from bgtasks.constants import ITERABLE_FIELDS, RELATION_FIELDS
 
 try:
     from django.utils.translation import ugettext_lazy as _
+    from django.core.exceptions import FieldDoesNotExist
 except ImportError:
     raise ImportError(
         'Please install django framework to use rest part of background task'
@@ -60,6 +61,8 @@ class RemoteField(serializers.RelatedField):
             if is_array and type(value) not in [list, tuple]:
                 raise serializers.ValidationError(_('Must be array.'))
         except AttributeError:
+            pass
+        except FieldDoesNotExist:
             pass
 
         if type(value) in [list, tuple]:
