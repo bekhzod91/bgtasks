@@ -35,6 +35,7 @@ class JobClient(object):
             routing_key=routing_key,
             body=json.dumps(body)
         )
+        self.connection.close()
 
 
 class JobServer(object):
